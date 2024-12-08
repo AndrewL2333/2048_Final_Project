@@ -1,6 +1,7 @@
 import os
 import sys
 
+# 
 # Suppress the "Hello from the pygame community" message
 with open(os.devnull, 'w') as fnull:
     sys.stdout = fnull
