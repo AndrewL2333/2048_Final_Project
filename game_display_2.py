@@ -14,7 +14,6 @@ class Config:
     # Animation 
     FPS = 60
     VELOCITY = 100
-    ENABLE_ANIMATION = True
 
     # Game board size
     WIDTH, HEIGHT = 400, 400 # total screen size
