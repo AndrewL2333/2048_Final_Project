@@ -44,6 +44,9 @@ class Config:
     FONT_COLOR = (0, 0, 0)  # Color of the text on tiles
     FONT = pygame.font.SysFont('arial', 40)  # Font used to render tile values
 
+    # Animation
+    FPS = 60
+    MOVE_VEL = 20
 
 class Board:
     """Handles all logic related to the game board state and moves."""
@@ -51,7 +54,9 @@ class Board:
         self.size = size
         # Initialize a 2D list filled with zeros to represent an empty board
         self.board = [[0] * size for _ in range(size)]
-
+        # Add tracking to positions
+        self.positions = {}
+        
     def add_new_tile(self):
         """Places a new tile (2 or 4) in a random empty position on the board."""
         empty_tiles = [(r, c) for r in range(self.size) for c in range(self.size) if self.board[r][c] == 0]
