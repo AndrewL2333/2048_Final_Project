@@ -1,6 +1,6 @@
 from Grid import Grid
 from ComputerAI import ComputerAI
-from IntelligentAgent_1 import IntelligentAgent
+from IntelligentAgent import IntelligentAgent
 from game_display import Config, Renderer
 import pygame
 import time
