@@ -5,6 +5,7 @@ from game_display_2 import Config, draw, WINDOW, generate_tiles, Tile
 import pygame
 import time
 import random
+import sys
 
 defaultInitialTiles = 2
 defaultProbability = 0.9
@@ -61,6 +62,43 @@ class GameManager:
                 if value != 0:
                     self.tiles[f"{r}{c}"] = Tile(value, r, c)
 
+    def show_end_menu(self):
+        """Displays the end menu with options to quit or restart."""
+        font = pygame.font.SysFont("arial", 30)
+        text_quit = font.render("Press Q to Quit", True, (255, 255, 255))
+        text_restart = font.render("Press R to Restart", True, (255, 255, 255))
+
+        while True:
+            self.screen.fill(Config.BACKGROUND_COLOR)
+
+            # Draw the final state of the grid
+            draw(self.screen, self.tiles)
+
+            # Display options
+            self.screen.blit(text_quit, (Config.WIDTH // 2 - text_quit.get_width() // 2, Config.HEIGHT // 2 - 50))
+            self.screen.blit(text_restart, (Config.WIDTH // 2 - text_restart.get_width() // 2, Config.HEIGHT // 2 + 50))
+            pygame.display.update()
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_q:
+                        pygame.quit()
+                        sys.exit()
+                    elif event.key == pygame.K_r:
+                        self.reset_game()
+                        return
+
+    def reset_game(self):
+        """Resets the game state and starts a new game."""
+        self.grid = Grid(self.grid.size)
+        self.tiles = generate_tiles()
+        self.over = False
+        self.start()
+
+
     def start(self):
         """ Main method that handles running the game of 2048 """
         clock = pygame.time.Clock()
@@ -101,7 +139,8 @@ class GameManager:
 
             turn = 1 - turn
 
-        pygame.quit()
+        # pygame.quit()
+        self.show_end_menu()
         return self.grid.getMaxTile()
 
 
