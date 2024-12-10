@@ -10,25 +10,26 @@ with open(os.devnull, 'w') as fnull:
 
 pygame.init()
 
-# Animation
-FPS = 60
-VELOCITY = 50
+class Config:
+    # Animation 
+    FPS = 60
+    VELOCITY = 50
 
-# Game board size
-WIDTH, HEIGHT = 400, 400 # total screen size
-ROWS, COLS = 4, 4 # number of rows and columns in grid
-TILE_HEIGHT, TILE_WIDTH = 100, 100 # pixel size of each tile
-OUTLINE_THICKNESS = 10
+    # Game board size
+    WIDTH, HEIGHT = 400, 400 # total screen size
+    ROWS, COLS = 4, 4 # number of ROWS and columns in grid
+    TILE_HEIGHT, TILE_WIDTH = 100, 100 # pixel size of each tile
+    OUTLINE_THICKNESS = 10
 
-# Game board color
-OUTLINE_COLOR = (187, 173, 160)
-BACKGROUND_COLOR = (205, 192, 180)
+    # Game board color
+    OUTLINE_COLOR = (187, 173, 160)
+    BACKGROUND_COLOR = (205, 192, 180)
 
-# Font setting
-FONT = pygame.font.SysFont("arial", 40)
-FONT_COLOR = (119, 110, 101)
+    # Config.FONT setting
+    FONT = pygame.font.SysFont("arial", 40)
+    FONT_COLOR = (119, 110, 101)
 
-WINDOW = pygame.display.set_mode((WIDTH, HEIGHT))
+WINDOW = pygame.display.set_mode((Config.WIDTH, Config.HEIGHT))
 pygame.display.set_caption("2048")
 
 
@@ -51,8 +52,8 @@ class Tile:
         self.value = value # 2, 4, 8, etc
         self.row = row # grid position
         self.col = col # grid position
-        self.x = col * TILE_WIDTH # pixel position
-        self.y = row * TILE_HEIGHT # pixel position
+        self.x = col * Config.TILE_WIDTH # pixel position
+        self.y = row * Config.TILE_HEIGHT # pixel position
 
     def get_color(self):
         color_index = int(math.log2(self.value)) - 1
@@ -63,25 +64,25 @@ class Tile:
         pygame.draw.rect(
             window, 
             self.get_color(), 
-            (self.x, self.y, TILE_WIDTH, TILE_HEIGHT),
+            (self.x, self.y, Config.TILE_WIDTH, Config.TILE_HEIGHT),
             border_radius=10)
 
-        text = FONT.render(str(self.value), 1, FONT_COLOR)
+        text = Config.FONT.render(str(self.value), 1, Config.FONT_COLOR)
         window.blit(
             text,
             (
-                self.x + (TILE_WIDTH / 2 - text.get_width() / 2),
-                self.y + (TILE_HEIGHT / 2 - text.get_height() / 2),
+                self.x + (Config.TILE_WIDTH / 2 - text.get_width() / 2),
+                self.y + (Config.TILE_HEIGHT / 2 - text.get_height() / 2),
             ),
         )
 
     def set_pos(self, ceil=False):
         if ceil:
-            self.row = math.ceil(self.y / TILE_HEIGHT)
-            self.col = math.ceil(self.x / TILE_WIDTH)
+            self.row = math.ceil(self.y / Config.TILE_HEIGHT)
+            self.col = math.ceil(self.x / Config.TILE_WIDTH)
         else:
-            self.row = math.floor(self.y / TILE_HEIGHT)
-            self.col = math.floor(self.x / TILE_WIDTH)
+            self.row = math.floor(self.y / Config.TILE_HEIGHT)
+            self.col = math.floor(self.x / Config.TILE_WIDTH)
 
     def move(self, delta):
         self.x += delta[0]
@@ -89,19 +90,19 @@ class Tile:
 
 
 def draw_grid(window):
-    for row in range(1, ROWS):
-        y = row * TILE_HEIGHT
-        pygame.draw.line(window, OUTLINE_COLOR, (0, y), (WIDTH, y), OUTLINE_THICKNESS)
+    for row in range(1, Config.ROWS):
+        y = row * Config.TILE_HEIGHT
+        pygame.draw.line(window, Config.OUTLINE_COLOR, (0, y), (Config.WIDTH, y), Config.OUTLINE_THICKNESS)
 
-    for col in range(1, COLS):
-        x = col * TILE_WIDTH
-        pygame.draw.line(window, OUTLINE_COLOR, (x, 0), (x, HEIGHT), OUTLINE_THICKNESS)
+    for col in range(1, Config.COLS):
+        x = col * Config.TILE_WIDTH
+        pygame.draw.line(window, Config.OUTLINE_COLOR, (x, 0), (x, Config.HEIGHT), Config.OUTLINE_THICKNESS)
 
-    pygame.draw.rect(window, OUTLINE_COLOR, (0, 0, WIDTH, HEIGHT), OUTLINE_THICKNESS)
+    pygame.draw.rect(window, Config.OUTLINE_COLOR, (0, 0, Config.WIDTH, Config.HEIGHT), Config.OUTLINE_THICKNESS)
 
 
 def draw(window, tiles):
-    window.fill(BACKGROUND_COLOR)
+    window.fill(Config.BACKGROUND_COLOR)
 
     for tile in tiles.values():
         tile.draw(window)
@@ -115,8 +116,8 @@ def get_random_pos(tiles):
     row = None
     col = None
     while True:
-        row = random.randrange(0, ROWS)
-        col = random.randrange(0, COLS)
+        row = random.randrange(0, Config.ROWS)
+        col = random.randrange(0, Config.COLS)
 
         if f"{row}{col}" not in tiles:
             break
@@ -131,50 +132,50 @@ def move_tiles(window, tiles, clock, direction):
     if direction == "left":
         sort_func = lambda x: x.col
         reverse = False
-        delta = (-VELOCITY, 0)
+        delta = (-Config.VELOCITY, 0)
         boundary_check = lambda tile: tile.col == 0
         get_next_tile = lambda tile: tiles.get(f"{tile.row}{tile.col - 1}")
-        merge_check = lambda tile, next_tile: tile.x > next_tile.x + VELOCITY
+        merge_check = lambda tile, next_tile: tile.x > next_tile.x + Config.VELOCITY
         move_check = (
-            lambda tile, next_tile: tile.x > next_tile.x + TILE_WIDTH + VELOCITY
+            lambda tile, next_tile: tile.x > next_tile.x + Config.TILE_WIDTH + Config.VELOCITY
         )
         ceil = True
     elif direction == "right":
         sort_func = lambda x: x.col
         reverse = True
-        delta = (VELOCITY, 0)
-        boundary_check = lambda tile: tile.col == COLS - 1
+        delta = (Config.VELOCITY, 0)
+        boundary_check = lambda tile: tile.col == Config.COLS - 1
         get_next_tile = lambda tile: tiles.get(f"{tile.row}{tile.col + 1}")
-        merge_check = lambda tile, next_tile: tile.x < next_tile.x - VELOCITY
+        merge_check = lambda tile, next_tile: tile.x < next_tile.x - Config.VELOCITY
         move_check = (
-            lambda tile, next_tile: tile.x + TILE_WIDTH + VELOCITY < next_tile.x
+            lambda tile, next_tile: tile.x + Config.TILE_WIDTH + Config.VELOCITY < next_tile.x
         )
         ceil = False
     elif direction == "up":
         sort_func = lambda x: x.row
         reverse = False
-        delta = (0, -VELOCITY)
+        delta = (0, -Config.VELOCITY)
         boundary_check = lambda tile: tile.row == 0
         get_next_tile = lambda tile: tiles.get(f"{tile.row - 1}{tile.col}")
-        merge_check = lambda tile, next_tile: tile.y > next_tile.y + VELOCITY
+        merge_check = lambda tile, next_tile: tile.y > next_tile.y + Config.VELOCITY
         move_check = (
-            lambda tile, next_tile: tile.y > next_tile.y + TILE_HEIGHT + VELOCITY
+            lambda tile, next_tile: tile.y > next_tile.y + Config.TILE_HEIGHT + Config.VELOCITY
         )
         ceil = True
     elif direction == "down":
         sort_func = lambda x: x.row
         reverse = True
-        delta = (0, VELOCITY)
-        boundary_check = lambda tile: tile.row == ROWS - 1
+        delta = (0, Config.VELOCITY)
+        boundary_check = lambda tile: tile.row == Config.ROWS - 1
         get_next_tile = lambda tile: tiles.get(f"{tile.row + 1}{tile.col}")
-        merge_check = lambda tile, next_tile: tile.y < next_tile.y - VELOCITY
+        merge_check = lambda tile, next_tile: tile.y < next_tile.y - Config.VELOCITY
         move_check = (
-            lambda tile, next_tile: tile.y + TILE_HEIGHT + VELOCITY < next_tile.y
+            lambda tile, next_tile: tile.y + Config.TILE_HEIGHT + Config.VELOCITY < next_tile.y
         )
         ceil = False
 
     while updated:
-        clock.tick(FPS)
+        clock.tick(Config.FPS)
         updated = False
         sorted_tiles = sorted(tiles.values(), key=sort_func, reverse=reverse)
 
@@ -242,7 +243,7 @@ def main(window):
     tiles = generate_tiles()
 
     while run:
-        clock.tick(FPS)
+        clock.tick(Config.FPS)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
