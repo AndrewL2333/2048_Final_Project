@@ -13,7 +13,7 @@ pygame.init()
 class Config:
     # Animation 
     FPS = 60
-    VELOCITY = 50
+    VELOCITY = 5
 
     # Game board size
     WIDTH, HEIGHT = 400, 400 # total screen size

@@ -1,7 +1,7 @@
 from Grid import Grid
 from ComputerAI import ComputerAI
 from IntelligentAgent import IntelligentAgent
-from game_display import Config, Renderer
+from game_display_2 import Config, draw, WINDOW, generate_tiles, Tile
 import pygame
 import time
 import random
@@ -28,8 +28,8 @@ class GameManager:
     def __init__(self, size=4, intelligentAgent=None, computerAI=None):
         self.grid = Grid(size)
         self.possibleNewTiles = [2, 4]
-        self.probability = defaultProbability
-        self.initTiles = defaultInitialTiles
+        self.probability = 0.9
+        self.initTiles = 2
         self.over = False
 
         # Initialize the AI players
@@ -37,10 +37,8 @@ class GameManager:
         self.intelligentAgent = intelligentAgent or IntelligentAgent()
 
         # Initialize the GUI
-        pygame.init()
-        self.screen = pygame.display.set_mode((Config.SCREEN_WIDTH, Config.SCREEN_HEIGHT))
-        pygame.display.set_caption("2048 Game")
-        self.renderer = Renderer(self.screen)
+        self.tiles = generate_tiles()
+        self.screen = WINDOW
 
     def getNewTileValue(self):
         """ Returns 2 with probability 0.9 and 4 with 0.1 """
@@ -54,19 +52,24 @@ class GameManager:
             cell = random.choice(cells) if cells else None
             self.grid.setCellValue(cell, tileValue)
 
+    def update_tiles(self):
+        """Sync the grid state with the tiles dictionary for rendering."""
+        self.tiles.clear()
+        for r in range(Config.ROWS):
+            for c in range(Config.COLS):
+                value = self.grid.map[r][c]
+                if value != 0:
+                    self.tiles[f"{r}{c}"] = Tile(value, r, c)
+
     def start(self):
         """ Main method that handles running the game of 2048 """
-
-        # Initialize the game
-        self.insertRandomTiles(self.initTiles)
-        self.renderer.draw_board(self.grid.map)
-        pygame.display.flip()
+        clock = pygame.time.Clock()
 
         turn = PLAYER_TURN  # Player AI Goes First
 
         while self.grid.canMove() and not self.over:
             for event in pygame.event.get():
-                if event.type is pygame.QUIT:
+                if event.type == pygame.QUIT:
                     self.over = True
                     break
 
@@ -88,8 +91,14 @@ class GameManager:
                 else:
                     self.over = True
 
-            self.renderer.draw_board(self.grid.map)
-            pygame.display.flip()
+            # Update the tiles dictionary to reflect the grid state
+            self.update_tiles()
+
+            # Render the board
+            draw(self.screen, self.tiles)
+            pygame.display.update()
+            clock.tick(Config.FPS)
+
             turn = 1 - turn
 
         pygame.quit()
