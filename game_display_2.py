@@ -14,6 +14,7 @@ class Config:
     # Animation 
     FPS = 60
     VELOCITY = 100
+    ENABLE_ANIMATION = True
 
     # Game board size
     WIDTH, HEIGHT = 400, 400 # total screen size
@@ -26,7 +27,7 @@ class Config:
     BACKGROUND_COLOR = (205, 192, 180)
 
     # Config.FONT setting
-    FONT = pygame.font.SysFont("arial", 40)
+    FONT = pygame.font.Font("chinese.ttf", 40)
     FONT_COLOR = (119, 110, 101)
 
 WINDOW = pygame.display.set_mode((Config.WIDTH, Config.HEIGHT))
@@ -35,17 +36,28 @@ pygame.display.set_caption("2048")
 
 class Tile:
     TILE_COLORS = [
-        (237, 229, 218),
-        (238, 225, 201),
-        (243, 178, 122),
-        (246, 150, 101),
-        (247, 124, 95),
-        (247, 95, 59),
-        (237, 208, 115),
-        (237, 204, 99),
-        (236, 202, 80),
-        (237, 197, 63),
-        (237, 194, 46)
+        (237, 229, 218), #2 一
+        (238, 225, 201), #4 二
+        (243, 178, 122), #8 三
+        (246, 150, 101), #16 四
+        (247, 124, 95), #32 五
+        (247, 95, 59), #64 六
+        (237, 208, 115), #128 七
+        (237, 204, 99), #256 八
+        (236, 202, 80), #512 九
+        (237, 197, 63), #1024 十
+        (237, 194, 46), #2048 十一
+        (104, 122, 131), #4096 十二
+        (131, 149, 158), #8192 十三
+        (142, 180, 200), #16384 十四
+        (158, 203, 211), #32768 十五
+        (151, 195, 231), #65336 十六
+        
+    ]
+    
+    NUMBER_TO_CHINESE = [
+    "一", "二", "三", "四", "五", "六", "七", "八", "九", "十",
+    "十一", "十二", "十三", "十四", "十五", "十六"
     ]
 
     def __init__(self, value, row, col):
@@ -67,7 +79,13 @@ class Tile:
             (self.x, self.y, Config.TILE_WIDTH, Config.TILE_HEIGHT),
             border_radius=10)
 
-        text = Config.FONT.render(str(self.value), 1, Config.FONT_COLOR)
+        # Convert value to Chinese numeral
+        try:
+            chinese_value = self.NUMBER_TO_CHINESE[int(math.log2(self.value)) - 1]
+        except IndexError:
+            chinese_value = str(self.value)  # Fallback to number if out of range
+
+        text = Config.FONT.render(chinese_value, 1, Config.FONT_COLOR)
         window.blit(
             text,
             (
