@@ -12,6 +12,13 @@ This project includes a Python implementation of the 2048 game with an AI-driven
 
 ## Usage
 Run `AIPlayer.py` to start the game. Ensure Pygame is installed and configured properly on your system.
+Run `game_display.py` to play the game by yourself.
+
+## Intellengent Agent:
+ There are three strategy for rewarding choices of next coupple possible steps:
+  1. The bigger the bigest number;
+  2. The bigest number should be at the one of corners;
+  3. Number should be increased as a snake shape;
 
 ## Dependencies
 - Python 3.x
@@ -23,8 +30,3 @@ Run `AIPlayer.py` to start the game. Ensure Pygame is installed and configured p
 
 
  
-# Intellengent Agent:
- There are three strategy for rewarding choices of next coupple possible steps:
-  1. The bigger the bigest number;
-  2. The bigest number should be at the one of corners;
-  3. Number should be increased as a snake shape;
