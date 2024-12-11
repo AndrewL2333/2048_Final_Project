@@ -10,6 +10,8 @@ with open(os.devnull, 'w') as fnull:
 
 pygame.init()
 
+# This class is based on the technique discussed in Make 2048 In Python | Full Python Game Tutorial by Tech with Tim
+# https://www.youtube.com/watch?v=6ZyylFcjfIg
 class Config:
     """Configuration settings for the 2048 game display, including screen size, colors, and font settings."""
 
