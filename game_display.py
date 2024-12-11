@@ -11,6 +11,8 @@ with open(os.devnull, 'w') as fnull:
 pygame.init()
 
 class Config:
+    """Configuration settings for the 2048 game display, including screen size, colors, and font settings."""
+
     # Animation 
     FPS = 60
     VELOCITY = 100
@@ -34,6 +36,8 @@ pygame.display.set_caption("2048")
 
 
 class Tile:
+    """Represents a single tile in the game with specific value and position."""
+
     TILE_COLORS = [
         (237, 229, 218), #2 一
         (238, 225, 201), #4 二
@@ -60,6 +64,14 @@ class Tile:
     ]
 
     def __init__(self, value, row, col):
+        """
+        Initialize a tile with value and position.
+        
+        :param value: int, the numerical value of the tile.
+        :param row: int, the row index of the tile in the grid.
+        :param col: int, the column index of the tile in the grid.
+        """
+        
         self.value = value # 2, 4, 8, etc
         self.row = row # grid position
         self.col = col # grid position
@@ -67,6 +79,12 @@ class Tile:
         self.y = row * Config.TILE_HEIGHT # pixel position
 
     def get_color(self):
+        """
+        Determines the color of the tile based on its value.
+        
+        :return: tuple, RGB color value for the tile.
+        """
+        
         color_index = int(math.log2(self.value)) - 1
         color = self.TILE_COLORS[color_index]
         return color

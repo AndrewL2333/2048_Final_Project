@@ -26,7 +26,17 @@ maxTime = timeLimit + allowance
 
 
 class AIPlayer:
+    """Manages the AI-driven gameplay for the 2048 game."""
+    
     def __init__(self, size=4, intelligentAgent=None, computerAI=None):
+        """
+        Initializes the AI player with a game size, player AI, and computer AI.
+        
+        :param size: int, the width/height of the square grid.
+        :param intelligentAgent: IntelligentAgent, the AI responsible for player moves.
+        :param computerAI: ComputerAI, the AI responsible for computer moves.
+        """
+        
         self.grid = Grid(size)
         self.possibleNewTiles = [2, 4]
         self.probability = 0.9
