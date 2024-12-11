@@ -90,6 +90,12 @@ class Tile:
         return color
 
     def draw(self, window):
+        """
+        Draw a tile on the specified window with its value represented as a Chinese character.
+    
+        :param window: The Pygame window surface where the tile is drawn.
+        """
+        
         pygame.draw.rect(
             window, 
             self.get_color(), 
@@ -112,6 +118,11 @@ class Tile:
         )
 
     def set_pos(self, ceil=False):
+        """
+        Set the position of the tile based on its current pixel position, rounding to the nearest grid location.
+    
+        :param ceil: Boolean flag to determine if rounding should use ceil (True) or floor (False).
+        """
         if ceil:
             self.row = math.ceil(self.y / Config.TILE_HEIGHT)
             self.col = math.ceil(self.x / Config.TILE_WIDTH)
@@ -120,11 +131,21 @@ class Tile:
             self.col = math.floor(self.x / Config.TILE_WIDTH)
 
     def move(self, delta):
+        """
+        Move the tile position by the given delta.
+    
+        :param delta: A tuple (dx, dy) representing how much to move the tile in x and y direction.
+        """
         self.x += delta[0]
         self.y += delta[1]
 
 
 def draw_grid(window):
+    """
+    Draw the grid lines on the window.
+
+    :param window: The Pygame window surface where the grid lines are drawn.
+    """
     for row in range(1, Config.ROWS):
         y = row * Config.TILE_HEIGHT
         pygame.draw.line(window, Config.OUTLINE_COLOR, (0, y), (Config.WIDTH, y), Config.OUTLINE_THICKNESS)
@@ -137,6 +158,12 @@ def draw_grid(window):
 
 
 def draw(window, tiles):
+    """
+    Clear the window and draw all tiles and grid lines.
+
+    :param window: The Pygame window surface to be drawn on.
+    :param tiles: Dictionary of tile objects to be drawn.
+    """
     window.fill(Config.BACKGROUND_COLOR)
 
     for tile in tiles.values():
@@ -148,6 +175,12 @@ def draw(window, tiles):
 
 
 def get_random_pos(tiles):
+    """
+    Get a random position in the grid that is not already occupied by a tile.
+
+    :param tiles: Dictionary of current tile positions to check against.
+    :return: A tuple (row, col) representing the position.
+    """
     row = None
     col = None
     while True:
@@ -161,6 +194,15 @@ def get_random_pos(tiles):
 
 
 def move_tiles(window, tiles, clock, direction):
+    """
+    Move all tiles in the specified direction and handle merging of tiles.
+
+    :param window: The Pygame window surface where tiles are displayed.
+    :param tiles: Dictionary of current tile objects.
+    :param clock: Pygame clock object to control frame rate.
+    :param direction: String indicating the direction to move ('left', 'right', 'up', 'down').
+    :return: 'lost' if no moves are possible, 'continue' otherwise.
+    """
     updated = True
     blocks = set()
 
@@ -246,6 +288,12 @@ def move_tiles(window, tiles, clock, direction):
 
 
 def end_move(tiles):
+    """
+    Determine the game state after a move: continue or lost.
+
+    :param tiles: Dictionary of tiles after move.
+    :return: 'lost' if the game is over (no more moves), otherwise 'continue'.
+    """
     if len(tiles) == 16:
         return "lost"
 
@@ -255,6 +303,14 @@ def end_move(tiles):
 
 
 def update_tiles(window, tiles, sorted_tiles):
+    """
+    Update the dictionary of tiles and redraw the window.
+
+    :param window: The Pygame window surface where tiles are displayed.
+    :param tiles: Dictionary to be updated.
+    :param sorted_tiles: List of sorted tiles based on the last move.
+    """
+
     tiles.clear()
     for tile in sorted_tiles:
         tiles[f"{tile.row}{tile.col}"] = tile
@@ -263,6 +319,11 @@ def update_tiles(window, tiles, sorted_tiles):
 
 
 def generate_tiles():
+    """
+    Generate the initial set of tiles for the game.
+
+    :return: Dictionary of initial tiles.
+    """
     tiles = {}
     for _ in range(2):
         row, col = get_random_pos(tiles)
@@ -272,6 +333,11 @@ def generate_tiles():
 
 
 def main(window):
+    """
+    Main function to start the game loop.
+
+    :param window: The Pygame window surface to use for display.
+    """
     clock = pygame.time.Clock()
     run = True
 
