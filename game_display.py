@@ -1,246 +1,286 @@
+import random
+import math
 import os
 import sys
-
 # Suppress the "Hello from the pygame community" message
 with open(os.devnull, 'w') as fnull:
     sys.stdout = fnull
     import pygame 
     sys.stdout = sys.__stdout__ 
-import random
 
 pygame.init()
 
 class Config:
-    # Game board configuration
-    SIZE = 4             # Number of rows/columns in the grid
-    TILE_SIZE = 100      # Pixel size of each tile
-    GAP_SIZE = 10        # Gap between tiles in pixels
-    MARGIN = 20          # Margin around the board in pixels
+    # Animation 
+    FPS = 60
+    VELOCITY = 100
 
-    # Compute the total screen size based on the above values
-    SCREEN_SIZE = SIZE * TILE_SIZE + (SIZE + 1) * GAP_SIZE + 2 * MARGIN
-    SCREEN_WIDTH = SCREEN_SIZE
-    SCREEN_HEIGHT = SCREEN_SIZE
+    # Game board size
+    WIDTH, HEIGHT = 400, 400 # total screen size
+    ROWS, COLS = 4, 4 # number of ROWS and columns in grid
+    TILE_HEIGHT, TILE_WIDTH = 100, 100 # pixel size of each tile
+    OUTLINE_THICKNESS = 10
 
-    # Color configuration
-    BACKGROUND_COLOR = (255, 251, 240)  # Background color of the game board
-    EMPTY_TILE_COLOR = (205, 192, 180)  # Color for empty tiles
-    TILE_COLORS = {                      # Different colors for different tile values
-        2: (238, 228, 218),
-        4: (237, 224, 200),
-        8: (242, 177, 121),
-        16: (245, 149, 99),
-        32: (246, 124, 95),
-        64: (246, 94, 59),
-        128: (237, 207, 114),
-        256: (237, 204, 97),
-        512: (237, 200, 80),
-        1024: (237, 197, 63),
-        2048: (237, 194, 46)
-    }
+    # Game board color
+    OUTLINE_COLOR = (187, 173, 160)
+    BACKGROUND_COLOR = (205, 192, 180)
 
-    # Font settings
-    FONT_COLOR = (0, 0, 0)  # Color of the text on tiles
-    FONT = pygame.font.SysFont('arial', 40)  # Font used to render tile values
+    # Config.FONT setting
+    FONT = pygame.font.Font("chinese.ttf", 40)
+    FONT_COLOR = (119, 110, 101)
+
+WINDOW = pygame.display.set_mode((Config.WIDTH, Config.HEIGHT))
+pygame.display.set_caption("2048")
 
 
-class Board:
-    """Handles all logic related to the game board state and moves."""
-    def __init__(self, size=Config.SIZE):
-        self.size = size
-        # Initialize a 2D list filled with zeros to represent an empty board
-        self.board = [[0] * size for _ in range(size)]
+class Tile:
+    TILE_COLORS = [
+        (237, 229, 218), #2 一
+        (238, 225, 201), #4 二
+        (243, 178, 122), #8 三
+        (246, 150, 101), #16 四
+        (247, 124, 95), #32 五
+        (247, 95, 59), #64 六
+        (237, 208, 115), #128 七
+        (237, 204, 99), #256 八
+        (236, 202, 80), #512 九
+        (237, 197, 63), #1024 十
+        (237, 194, 46), #2048 十一
+        (104, 122, 131), #4096 十二
+        (131, 149, 158), #8192 十三
+        (142, 180, 200), #16384 十四
+        (158, 203, 211), #32768 十五
+        (151, 195, 231), #65336 十六
+        
+    ]
+    
+    NUMBER_TO_CHINESE = [
+    "一", "二", "三", "四", "五", "六", "七", "八", "九", "十",
+    "十一", "十二", "十三", "十四", "十五", "十六"
+    ]
 
-    def add_new_tile(self):
-        """Places a new tile (2 or 4) in a random empty position on the board."""
-        empty_tiles = [(r, c) for r in range(self.size) for c in range(self.size) if self.board[r][c] == 0]
-        if empty_tiles:
-            row, col = random.choice(empty_tiles)
-            self.board[row][col] = 2 if random.random() < 0.9 else 4
+    def __init__(self, value, row, col):
+        self.value = value # 2, 4, 8, etc
+        self.row = row # grid position
+        self.col = col # grid position
+        self.x = col * Config.TILE_WIDTH # pixel position
+        self.y = row * Config.TILE_HEIGHT # pixel position
 
-    def slide_row_left(self, row):
-        """Slides and merges a single row to the left according to 2048 rules."""
-        # Filter out zeros to compress tiles to the left
-        new_row = [i for i in row if i != 0]
+    def get_color(self):
+        color_index = int(math.log2(self.value)) - 1
+        color = self.TILE_COLORS[color_index]
+        return color
 
-        # Merge adjacent tiles of the same value
-        for i in range(len(new_row)-1):
-            if new_row[i] == new_row[i+1]:
-                new_row[i] *= 2
-                new_row[i+1] = 0
+    def draw(self, window):
+        pygame.draw.rect(
+            window, 
+            self.get_color(), 
+            (self.x, self.y, Config.TILE_WIDTH, Config.TILE_HEIGHT),
+            border_radius=10)
 
-        # Filter zeros again after merging
-        new_row = [i for i in new_row if i != 0]
+        # Convert value to Chinese numeral
+        try:
+            chinese_value = self.NUMBER_TO_CHINESE[int(math.log2(self.value)) - 1]
+        except IndexError:
+            chinese_value = str(self.value)  # Fallback to number if out of range
 
-        # Add trailing zeros to maintain row size
-        new_row += [0] * (self.size - len(new_row))
-        return new_row
+        text = Config.FONT.render(chinese_value, 1, Config.FONT_COLOR)
+        window.blit(
+            text,
+            (
+                self.x + (Config.TILE_WIDTH / 2 - text.get_width() / 2),
+                self.y + (Config.TILE_HEIGHT / 2 - text.get_height() / 2),
+            ),
+        )
 
-    def move_left(self):
-        """Perform a left move on the entire board."""
-        self.board = [self.slide_row_left(row) for row in self.board]
+    def set_pos(self, ceil=False):
+        if ceil:
+            self.row = math.ceil(self.y / Config.TILE_HEIGHT)
+            self.col = math.ceil(self.x / Config.TILE_WIDTH)
+        else:
+            self.row = math.floor(self.y / Config.TILE_HEIGHT)
+            self.col = math.floor(self.x / Config.TILE_WIDTH)
 
-    def move_right(self):
-        """Perform a right move on the entire board."""
-        # Reverse each row, slide left, then reverse back
-        self.board = [self.slide_row_left(row[::-1])[::-1] for row in self.board]
-
-    def move_up(self):
-        """Perform an upward move on the entire board."""
-        # Transpose, slide left, transpose back
-        transposed = list(zip(*self.board))
-        moved = [self.slide_row_left(list(row)) for row in transposed]
-        self.board = [list(row) for row in zip(*moved)]
-
-    def move_down(self):
-        """Perform a downward move on the entire board."""
-        # Transpose, reverse each row (simulate down as reverse-up), slide, reverse and transpose back
-        transposed = list(zip(*self.board))
-        moved = [self.slide_row_left(list(row[::-1]))[::-1] for row in transposed]
-        self.board = [list(row) for row in zip(*moved)]
-
-    def check_win(self):
-        """Check if the board contains a 2048 tile."""
-        return any(2048 in row for row in self.board)
-
-    def check_moves_available(self):
-        """Check if there are any moves left (either empty spaces or possible merges)."""
-        # Check for empty spaces
-        for row in self.board:
-            if 0 in row:
-                return True
-
-        # Check horizontal merges
-        for row in self.board:
-            for c in range(self.size - 1):
-                if row[c] == row[c + 1]:
-                    return True
-
-        # Check vertical merges
-        for c in range(self.size):
-            for r in range(self.size - 1):
-                if self.board[r][c] == self.board[r + 1][c]:
-                    return True
-
-        # No empty spaces or merges available means no moves left
-        return False
+    def move(self, delta):
+        self.x += delta[0]
+        self.y += delta[1]
 
 
-class Renderer:
-    """Handles all the drawing and rendering of the game to the screen."""
-    def __init__(self, screen, font=Config.FONT):
-        self.screen = screen
-        self.font = font
+def draw_grid(window):
+    for row in range(1, Config.ROWS):
+        y = row * Config.TILE_HEIGHT
+        pygame.draw.line(window, Config.OUTLINE_COLOR, (0, y), (Config.WIDTH, y), Config.OUTLINE_THICKNESS)
 
-    def draw_tile(self, value, x, y):
-        """Draw a single tile with its value at position (x, y)."""
-        # Get tile color from dictionary or default color for large numbers
-        color = Config.TILE_COLORS.get(value, (60, 58, 50))
-        rect = pygame.Rect(x, y, Config.TILE_SIZE, Config.TILE_SIZE)
-        pygame.draw.rect(self.screen, color, rect)
-        # Render the tile number if it's not empty
-        if value != 0:
-            text = self.font.render(str(value), True, Config.FONT_COLOR)
-            text_rect = text.get_rect(center=(x + Config.TILE_SIZE / 2, y + Config.TILE_SIZE / 2))
-            self.screen.blit(text, text_rect)
+    for col in range(1, Config.COLS):
+        x = col * Config.TILE_WIDTH
+        pygame.draw.line(window, Config.OUTLINE_COLOR, (x, 0), (x, Config.HEIGHT), Config.OUTLINE_THICKNESS)
 
-    def draw_board(self, board):
-        """Draw the entire board with all the tiles."""
-        self.screen.fill(Config.BACKGROUND_COLOR)
-        for r in range(Config.SIZE):
-            for c in range(Config.SIZE):
-                value = board[r][c]
-                # Calculate the tile position based on margins, gaps, and tile size
-                x = Config.MARGIN + Config.GAP_SIZE + c * (Config.TILE_SIZE + Config.GAP_SIZE)
-                y = Config.MARGIN + Config.GAP_SIZE + r * (Config.TILE_SIZE + Config.GAP_SIZE)
-                self.draw_tile(value, x, y)
-
-    def draw_message(self, message):
-        """Draw a message (like 'You won!' or 'You lost!') in the center of the screen."""
-        text = self.font.render(message, True, (255, 0, 0))
-        text_rect = text.get_rect(center=(Config.SCREEN_WIDTH // 2, Config.SCREEN_HEIGHT // 2))
-        self.screen.blit(text, text_rect)
+    pygame.draw.rect(window, Config.OUTLINE_COLOR, (0, 0, Config.WIDTH, Config.HEIGHT), Config.OUTLINE_THICKNESS)
 
 
-class Game:
-    """Manages the main game loop, event handling, and orchestrates Board and Renderer."""
-    def __init__(self):
-        # Initialize the game window
-        self.screen = pygame.display.set_mode((Config.SCREEN_WIDTH, Config.SCREEN_HEIGHT))
-        pygame.display.set_caption("2048 Game")
-        self.clock = pygame.time.Clock()
+def draw(window, tiles):
+    window.fill(Config.BACKGROUND_COLOR)
 
-        # Create the board and renderer
-        self.board = Board(Config.SIZE)
-        self.renderer = Renderer(self.screen)
+    for tile in tiles.values():
+        tile.draw(window)
 
-        # Add the initial two tiles
-        self.board.add_new_tile()
-        self.board.add_new_tile()
+    draw_grid(window)
 
-        self.running = True   # Game loop control
-        self.won = False      # Track if the player has won
-        self.lost = False     # Track if the player has lost
+    pygame.display.update()
 
-    def handle_input(self):
-        """Handle player input from the keyboard and other events."""
+
+def get_random_pos(tiles):
+    row = None
+    col = None
+    while True:
+        row = random.randrange(0, Config.ROWS)
+        col = random.randrange(0, Config.COLS)
+
+        if f"{row}{col}" not in tiles:
+            break
+
+    return row, col
+
+
+def move_tiles(window, tiles, clock, direction):
+    updated = True
+    blocks = set()
+
+    if direction == "left":
+        sort_func = lambda x: x.col
+        reverse = False
+        delta = (-Config.VELOCITY, 0)
+        boundary_check = lambda tile: tile.col == 0
+        get_next_tile = lambda tile: tiles.get(f"{tile.row}{tile.col - 1}")
+        merge_check = lambda tile, next_tile: tile.x > next_tile.x + Config.VELOCITY
+        move_check = (
+            lambda tile, next_tile: tile.x > next_tile.x + Config.TILE_WIDTH + Config.VELOCITY
+        )
+        ceil = True
+    elif direction == "right":
+        sort_func = lambda x: x.col
+        reverse = True
+        delta = (Config.VELOCITY, 0)
+        boundary_check = lambda tile: tile.col == Config.COLS - 1
+        get_next_tile = lambda tile: tiles.get(f"{tile.row}{tile.col + 1}")
+        merge_check = lambda tile, next_tile: tile.x < next_tile.x - Config.VELOCITY
+        move_check = (
+            lambda tile, next_tile: tile.x + Config.TILE_WIDTH + Config.VELOCITY < next_tile.x
+        )
+        ceil = False
+    elif direction == "up":
+        sort_func = lambda x: x.row
+        reverse = False
+        delta = (0, -Config.VELOCITY)
+        boundary_check = lambda tile: tile.row == 0
+        get_next_tile = lambda tile: tiles.get(f"{tile.row - 1}{tile.col}")
+        merge_check = lambda tile, next_tile: tile.y > next_tile.y + Config.VELOCITY
+        move_check = (
+            lambda tile, next_tile: tile.y > next_tile.y + Config.TILE_HEIGHT + Config.VELOCITY
+        )
+        ceil = True
+    elif direction == "down":
+        sort_func = lambda x: x.row
+        reverse = True
+        delta = (0, Config.VELOCITY)
+        boundary_check = lambda tile: tile.row == Config.ROWS - 1
+        get_next_tile = lambda tile: tiles.get(f"{tile.row + 1}{tile.col}")
+        merge_check = lambda tile, next_tile: tile.y < next_tile.y - Config.VELOCITY
+        move_check = (
+            lambda tile, next_tile: tile.y + Config.TILE_HEIGHT + Config.VELOCITY < next_tile.y
+        )
+        ceil = False
+
+    while updated:
+        clock.tick(Config.FPS)
+        updated = False
+        sorted_tiles = sorted(tiles.values(), key=sort_func, reverse=reverse)
+
+        for i, tile in enumerate(sorted_tiles):
+            if boundary_check(tile):
+                continue
+
+            next_tile = get_next_tile(tile)
+            if not next_tile:
+                tile.move(delta)
+            elif (
+                tile.value == next_tile.value
+                and tile not in blocks
+                and next_tile not in blocks
+            ):
+                if merge_check(tile, next_tile):
+                    tile.move(delta)
+                else:
+                    next_tile.value *= 2
+                    sorted_tiles.pop(i)
+                    blocks.add(next_tile)
+            elif move_check(tile, next_tile):
+                tile.move(delta)
+            else:
+                continue
+
+            tile.set_pos(ceil)
+            updated = True
+
+        update_tiles(window, tiles, sorted_tiles)
+
+    return end_move(tiles)
+
+
+def end_move(tiles):
+    if len(tiles) == 16:
+        return "lost"
+
+    row, col = get_random_pos(tiles)
+    tiles[f"{row}{col}"] = Tile(random.choice([2, 4]), row, col)
+    return "continue"
+
+
+def update_tiles(window, tiles, sorted_tiles):
+    tiles.clear()
+    for tile in sorted_tiles:
+        tiles[f"{tile.row}{tile.col}"] = tile
+
+    draw(window, tiles)
+
+
+def generate_tiles():
+    tiles = {}
+    for _ in range(2):
+        row, col = get_random_pos(tiles)
+        tiles[f"{row}{col}"] = Tile(2, row, col)
+
+    return tiles
+
+
+def main(window):
+    clock = pygame.time.Clock()
+    run = True
+
+    tiles = generate_tiles()
+
+    while run:
+        clock.tick(Config.FPS)
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                self.running = False  # Exit the game loop
-            elif event.type == pygame.KEYDOWN and not self.won and not self.lost:
-                # If the player hasn't won or lost, handle arrow keys to move tiles
-                moved = False
+                run = False
+                break
+
+            if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
-                    self.board.move_left()
-                    moved = True
-                elif event.key == pygame.K_RIGHT:
-                    self.board.move_right()
-                    moved = True
-                elif event.key == pygame.K_UP:
-                    self.board.move_up()
-                    moved = True
-                elif event.key == pygame.K_DOWN:
-                    self.board.move_down()
-                    moved = True
+                    move_tiles(window, tiles, clock, "left")
+                if event.key == pygame.K_RIGHT:
+                    move_tiles(window, tiles, clock, "right")
+                if event.key == pygame.K_UP:
+                    move_tiles(window, tiles, clock, "up")
+                if event.key == pygame.K_DOWN:
+                    move_tiles(window, tiles, clock, "down")
 
-                if moved:
-                    # After a valid move, add a new tile
-                    self.board.add_new_tile()
-                    # Check if the player has won by getting 2048
-                    self.won = self.board.check_win()
-                    # Check if there are still moves available; if not, player lost
-                    self.lost = not self.board.check_moves_available()
+        draw(window, tiles)
 
-    def update(self):
-        """Update game logic if needed. 
-        Currently, all logic is handled directly in handle_input for simplicity."""
-        pass
-
-    def render(self):
-        """Render the current board state and messages to the screen."""
-        self.renderer.draw_board(self.board.board)
-
-        # Display messages if the game is won or lost
-        if self.won:
-            self.renderer.draw_message("You won!")
-        elif self.lost:
-            self.renderer.draw_message("You lost!")
-
-        # Update the display
-        pygame.display.flip()
-
-    def run(self):
-        """Run the main game loop until the player quits."""
-        while self.running:
-            self.handle_input()
-            self.update()
-            self.render()
-            # Limit the frame rate to 30 FPS
-            self.clock.tick(30)
-
-        pygame.quit()
+    pygame.quit()
 
 
 if __name__ == "__main__":
-    # Create a Game instance and start the loop
-    Game().run()
+    main(WINDOW)

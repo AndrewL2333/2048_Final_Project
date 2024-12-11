@@ -1,7 +1,7 @@
 from Grid import Grid
 from ComputerAI import ComputerAI
 from IntelligentAgent import IntelligentAgent
-from game_display_2 import Config, draw, WINDOW, generate_tiles, Tile
+from game_display import Config, draw, WINDOW, generate_tiles, Tile
 import pygame
 import time
 import random
@@ -25,7 +25,7 @@ allowance = 0.05
 maxTime = timeLimit + allowance
 
 
-class GameManager:
+class AIPlayer:
     def __init__(self, size=4, intelligentAgent=None, computerAI=None):
         self.grid = Grid(size)
         self.possibleNewTiles = [2, 4]
@@ -208,6 +208,6 @@ class GameManager:
 if __name__ == "__main__":
     intelligentAgent = IntelligentAgent()
     computerAI = ComputerAI()
-    gameManager = GameManager(4, intelligentAgent, computerAI)
+    gameManager = AIPlayer(4, intelligentAgent, computerAI)
     maxTile = gameManager.start()
     print("Game Over. Max tile reached:", maxTile)
