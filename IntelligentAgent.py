@@ -5,6 +5,10 @@ import math
 MAX_DEPTH = 4
 
 class IntelligentAgent(BaseAI):
+
+     # The Monte Carlo method referenced YouTube Video "Game AI: Solving the Game of 2048! (Monte Carlo - Solved)" by John Tan Chong Min.
+    
+    def __init__(self):
     def __init__(self):
         # Cache stores previously computed game board evaluations for efficiency
         self.cache = {}
