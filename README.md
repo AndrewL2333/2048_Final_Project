@@ -7,7 +7,7 @@ This project includes a Python implementation of the 2048 game with an AI-driven
 ## Features
 - **Multilingual Display**: Utilizes Chinese characters for tile numbers, providing a unique and culturally enriched gaming experience.
 - Pygame-based graphical display of the game board.
-- Configurable game settings through the `Config` class.
+- Configurable game settings through the `Config` class. Speed of animation can be adjusted customily.
 - AI algorithms to control both player and computer moves.
 
 ## Usage
